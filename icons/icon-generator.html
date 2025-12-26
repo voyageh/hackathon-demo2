@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Icon Generator - YouTube Gemini Assistant</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      text-align: center;
+    }
+    h1 {
+      color: #667eea;
+    }
+    .icon-container {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      margin: 40px 0;
+    }
+    .icon-wrapper {
+      text-align: center;
+    }
+    canvas {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      margin: 10px;
+    }
+    button:hover {
+      opacity: 0.9;
+    }
+    .instructions {
+      background: #f8f9ff;
+      padding: 20px;
+      border-radius: 8px;
+      margin-top: 30px;
+      text-align: left;
+    }
+    .instructions ol {
+      margin-left: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>YouTube Gemini Assistant - Icon Generator</h1>
+  <p>点击下载按钮保存图标文件</p>
+
+  <div class="icon-container">
+    <div class="icon-wrapper">
+      <h3>16x16</h3>
+      <canvas id="icon16" width="16" height="16"></canvas>
+      <br>
+      <button onclick="downloadIcon('icon16', 'icon16.png')">下载 16x16</button>
+    </div>
+
+    <div class="icon-wrapper">
+      <h3>48x48</h3>
+      <canvas id="icon48" width="48" height="48"></canvas>
+      <br>
+      <button onclick="downloadIcon('icon48', 'icon48.png')">下载 48x48</button>
+    </div>
+
+    <div class="icon-wrapper">
+      <h3>128x128</h3>
+      <canvas id="icon128" width="128" height="128"></canvas>
+      <br>
+      <button onclick="downloadIcon('icon128', 'icon128.png')">下载 128x128</button>
+    </div>
+  </div>
+
+  <div class="instructions">
+    <h3>使用说明：</h3>
+    <ol>
+      <li>点击上方的三个下载按钮，将图标文件保存到 <code>icons/</code> 目录</li>
+      <li>确保文件名分别为 <code>icon16.png</code>、<code>icon48.png</code>、<code>icon128.png</code></li>
+      <li>在 Chrome 浏览器中打开 <code>chrome://extensions/</code></li>
+      <li>启用"开发者模式"</li>
+      <li>点击"加载已解压的扩展程序"</li>
+      <li>选择本项目的根目录</li>
+      <li>完成！现在可以在 YouTube 视频页面使用扩展了</li>
+    </ol>
+  </div>
+
+  <script>
+    // Draw icons on canvases
+    function drawIcon(canvasId, size) {
+      const canvas = document.getElementById(canvasId);
+      const ctx = canvas.getContext('2d');
+
+      // Create gradient background
+      const gradient = ctx.createLinearGradient(0, 0, size, size);
+      gradient.addColorStop(0, '#667eea');
+      gradient.addColorStop(1, '#764ba2');
+
+      // Fill background
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, size, size);
+
+      // Draw AI symbol (simplified neural network)
+      ctx.strokeStyle = 'white';
+      ctx.fillStyle = 'white';
+      ctx.lineWidth = size / 16;
+
+      const centerX = size / 2;
+      const centerY = size / 2;
+      const nodeRadius = size / 16;
+      const layerSpacing = size / 4;
+
+      // Draw nodes
+      const layers = [
+        [{x: centerX - layerSpacing, y: centerY - layerSpacing/2},
+         {x: centerX - layerSpacing, y: centerY + layerSpacing/2}],
+        [{x: centerX, y: centerY}],
+        [{x: centerX + layerSpacing, y: centerY - layerSpacing/2},
+         {x: centerX + layerSpacing, y: centerY + layerSpacing/2}]
+      ];
+
+      // Draw connections
+      for (let i = 0; i < layers.length - 1; i++) {
+        for (let j = 0; j < layers[i].length; j++) {
+          for (let k = 0; k < layers[i + 1].length; k++) {
+            ctx.beginPath();
+            ctx.moveTo(layers[i][j].x, layers[i][j].y);
+            ctx.lineTo(layers[i + 1][k].x, layers[i + 1][k].y);
+            ctx.stroke();
+          }
+        }
+      }
+
+      // Draw nodes on top
+      layers.forEach(layer => {
+        layer.forEach(node => {
+          ctx.beginPath();
+          ctx.arc(node.x, node.y, nodeRadius, 0, Math.PI * 2);
+          ctx.fill();
+        });
+      });
+    }
+
+    // Download icon
+    function downloadIcon(canvasId, filename) {
+      const canvas = document.getElementById(canvasId);
+      const link = document.createElement('a');
+      link.download = filename;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+
+    // Initialize
+    drawIcon('icon16', 16);
+    drawIcon('icon48', 48);
+    drawIcon('icon128', 128);
+  </script>
+</body>
+</html>

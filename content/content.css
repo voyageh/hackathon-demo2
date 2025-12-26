@@ -1,0 +1,458 @@
+/* YouTube Memories.ai Assistant - Chat Interface Styles */
+
+.yt-gemini-container {
+  background: var(--yt-spec-base-background, #fff);
+  border: 1px solid var(--yt-spec-10-percent-layer, #e5e5e5);
+  border-radius: 12px;
+  margin-bottom: 16px;
+  overflow: hidden;
+  font-family: "Roboto", "Arial", sans-serif;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  height: 600px;
+}
+
+/* Header */
+.yt-gemini-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 14px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.yt-gemini-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.yt-gemini-title svg {
+  flex-shrink: 0;
+}
+
+.yt-gemini-clear-chat {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  padding: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.yt-gemini-clear-chat:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Messages Area */
+.yt-gemini-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.yt-gemini-welcome {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--yt-spec-text-secondary, #606060);
+}
+
+.yt-gemini-welcome p {
+  margin: 8px 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.yt-gemini-welcome p:first-child {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--yt-spec-text-primary, #030303);
+}
+
+/* Analyzing state */
+.yt-gemini-analyzing {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--yt-spec-text-secondary, #606060);
+}
+
+.yt-gemini-analyzing p {
+  margin-top: 20px;
+  font-size: 14px;
+}
+
+.yt-gemini-spinner-large {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(102, 126, 234, 0.2);
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Message Bubble */
+.yt-gemini-message {
+  display: flex;
+  gap: 10px;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.yt-gemini-msg-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+  background: var(--yt-spec-badge-chip-background, #f2f2f2);
+}
+
+.yt-gemini-message-user {
+  flex-direction: row-reverse;
+}
+
+.yt-gemini-message-user .yt-gemini-msg-content {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 18px 18px 4px 18px;
+}
+
+.yt-gemini-message-assistant .yt-gemini-msg-content {
+  background: var(--yt-spec-badge-chip-background, #f2f2f2);
+  color: var(--yt-spec-text-primary, #030303);
+  border-radius: 18px 18px 18px 4px;
+}
+
+.yt-gemini-msg-content {
+  max-width: 75%;
+  padding: 10px 14px;
+  font-size: 13px;
+  line-height: 1.5;
+  word-wrap: break-word;
+}
+
+.yt-gemini-message-error .yt-gemini-msg-content {
+  background: #fff3f3;
+  border: 1px solid #ffcdd2;
+  color: #c62828;
+  max-width: 100%;
+  border-radius: 8px;
+}
+
+/* Cursor animation */
+.yt-gemini-cursor {
+  animation: blink 1s infinite;
+  font-weight: 400;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* Loading dots animation */
+.yt-gemini-loading {
+  background: var(--yt-spec-badge-chip-background, #f2f2f2) !important;
+}
+
+.yt-gemini-typing-dots {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  padding: 4px 0;
+}
+
+.yt-gemini-typing-dots span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #667eea;
+  animation: typing-bounce 1.4s infinite ease-in-out both;
+}
+
+.yt-gemini-typing-dots span:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.yt-gemini-typing-dots span:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+@keyframes typing-bounce {
+  0%, 80%, 100% {
+    transform: scale(0);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Markdown styles in messages */
+.yt-gemini-msg-content h1,
+.yt-gemini-msg-content h2,
+.yt-gemini-msg-content h3 {
+  font-weight: 600;
+  margin: 12px 0 6px 0;
+}
+
+.yt-gemini-msg-content h1:first-child,
+.yt-gemini-msg-content h2:first-child,
+.yt-gemini-msg-content h3:first-child {
+  margin-top: 0;
+}
+
+.yt-gemini-msg-content h1 { font-size: 16px; }
+.yt-gemini-msg-content h2 { font-size: 15px; }
+.yt-gemini-msg-content h3 { font-size: 14px; }
+
+.yt-gemini-msg-content p {
+  margin: 6px 0;
+}
+
+.yt-gemini-msg-content p:first-child {
+  margin-top: 0;
+}
+
+.yt-gemini-msg-content p:last-child {
+  margin-bottom: 0;
+}
+
+.yt-gemini-msg-content ul,
+.yt-gemini-msg-content ol {
+  margin: 6px 0;
+  padding-left: 20px;
+}
+
+.yt-gemini-msg-content li {
+  margin: 3px 0;
+}
+
+.yt-gemini-msg-content strong {
+  font-weight: 600;
+}
+
+.yt-gemini-msg-content em {
+  font-style: italic;
+}
+
+.yt-gemini-msg-content code {
+  background: rgba(0, 0, 0, 0.08);
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+}
+
+.yt-gemini-message-user .yt-gemini-msg-content code {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Input Area */
+.yt-gemini-input-area {
+  border-top: 1px solid var(--yt-spec-10-percent-layer, #e5e5e5);
+  padding: 12px;
+  flex-shrink: 0;
+  background: var(--yt-spec-base-background, #fff);
+}
+
+.yt-gemini-quick-prompts {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.yt-gemini-quick-btn {
+  flex: 1;
+  padding: 8px 12px;
+  background: var(--yt-spec-badge-chip-background, #f2f2f2);
+  border: 1px solid var(--yt-spec-10-percent-layer, #e5e5e5);
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--yt-spec-text-primary, #030303);
+  white-space: nowrap;
+}
+
+.yt-gemini-quick-btn:hover {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-color: #667eea;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.yt-gemini-input-wrapper {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+#yt-gemini-input {
+  flex: 1;
+  padding: 10px 12px;
+  border: 2px solid var(--yt-spec-10-percent-layer, #e5e5e5);
+  border-radius: 20px;
+  font-size: 13px;
+  font-family: inherit;
+  resize: none;
+  transition: border-color 0.2s;
+  background: var(--yt-spec-base-background, #fff);
+  color: var(--yt-spec-text-primary, #030303);
+  max-height: 120px;
+  overflow-y: hidden;
+}
+
+#yt-gemini-input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+}
+
+#yt-gemini-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.yt-gemini-send-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.yt-gemini-send-btn:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.yt-gemini-send-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Scrollbar */
+.yt-gemini-messages::-webkit-scrollbar {
+  width: 6px;
+}
+
+.yt-gemini-messages::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.yt-gemini-messages::-webkit-scrollbar-thumb {
+  background: #c0c0c0;
+  border-radius: 3px;
+}
+
+.yt-gemini-messages::-webkit-scrollbar-thumb:hover {
+  background: #a0a0a0;
+}
+
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .yt-gemini-container {
+    background: var(--yt-spec-base-background, #0f0f0f);
+    border-color: var(--yt-spec-10-percent-layer, #272727);
+  }
+
+  .yt-gemini-msg-avatar {
+    background: var(--yt-spec-badge-chip-background, #272727);
+  }
+
+  .yt-gemini-message-assistant .yt-gemini-msg-content {
+    background: var(--yt-spec-badge-chip-background, #272727);
+    color: var(--yt-spec-text-primary, #f1f1f1);
+  }
+
+  .yt-gemini-message-assistant .yt-gemini-msg-content code {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .yt-gemini-quick-btn {
+    background: var(--yt-spec-badge-chip-background, #272727);
+    border-color: var(--yt-spec-10-percent-layer, #3f3f3f);
+    color: var(--yt-spec-text-primary, #f1f1f1);
+  }
+
+  #yt-gemini-input {
+    background: var(--yt-spec-base-background, #0f0f0f);
+    border-color: var(--yt-spec-10-percent-layer, #272727);
+    color: var(--yt-spec-text-primary, #f1f1f1);
+  }
+
+  .yt-gemini-input-area {
+    background: var(--yt-spec-base-background, #0f0f0f);
+    border-top-color: var(--yt-spec-10-percent-layer, #272727);
+  }
+
+  .yt-gemini-messages::-webkit-scrollbar-thumb {
+    background: #3f3f3f;
+  }
+
+  .yt-gemini-messages::-webkit-scrollbar-thumb:hover {
+    background: #5f5f5f;
+  }
+
+  .yt-gemini-loading {
+    background: var(--yt-spec-badge-chip-background, #272727) !important;
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .yt-gemini-container {
+    height: 500px;
+  }
+
+  .yt-gemini-quick-prompts {
+    flex-direction: column;
+  }
+
+  .yt-gemini-quick-btn {
+    white-space: normal;
+  }
+}

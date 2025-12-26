@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YouTube Gemini Assistant - 设置</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup-container">
+    <div class="popup-header">
+      <h2>YouTube Gemini Assistant</h2>
+      <p class="subtitle">配置你的 Gemini API Key</p>
+    </div>
+
+    <div class="popup-content">
+      <div class="form-group">
+        <label for="api-key-input">
+          Gemini API Key
+          <span class="required">*</span>
+        </label>
+        <input
+          type="password"
+          id="api-key-input"
+          placeholder="输入你的 Gemini API Key"
+        >
+        <button type="button" id="toggle-visibility" class="toggle-btn" title="显示/隐藏">
+          👁️
+        </button>
+      </div>
+
+      <div class="info-box">
+        <p>
+          <strong>如何获取 API Key？</strong><br>
+          访问 <a href="https://makersuite.google.com/app/apikey" target="_blank">Google AI Studio</a>
+          创建你的 API Key
+        </p>
+      </div>
+
+      <div class="status-message" id="status-message"></div>
+
+      <div class="button-group">
+        <button id="save-btn" class="btn btn-primary">保存配置</button>
+        <button id="test-btn" class="btn btn-secondary">测试连接</button>
+      </div>
+
+      <div class="api-status" id="api-status">
+        <div class="status-indicator">
+          <span class="status-dot" id="status-dot"></span>
+          <span id="status-text">未配置</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="popup-footer">
+      <p>使用说明：在 YouTube 视频页面点击右下角的 AI 按钮即可使用</p>
+      <p class="version">v1.0.0</p>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

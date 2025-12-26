@@ -36,6 +36,13 @@
   flex-shrink: 0;
 }
 
+.yt-gemini-header-buttons {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.yt-gemini-download-btn,
 .yt-gemini-clear-chat {
   background: rgba(255, 255, 255, 0.1);
   border: none;
@@ -49,8 +56,19 @@
   transition: background 0.2s;
 }
 
-.yt-gemini-clear-chat:hover {
+.yt-gemini-download-btn:hover:not(:disabled),
+.yt-gemini-clear-chat:hover:not(:disabled) {
   background: rgba(255, 255, 255, 0.2);
+}
+
+.yt-gemini-download-btn:disabled,
+.yt-gemini-clear-chat:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.yt-gemini-download-btn .spinning {
+  animation: spin 1s linear infinite;
 }
 
 /* Messages Area */
@@ -442,6 +460,29 @@
   }
 }
 
+/* Toast notification */
+.yt-gemini-toast {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  font-size: 14px;
+  font-weight: 500;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.3s ease;
+  z-index: 10000;
+}
+
+.yt-gemini-toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .yt-gemini-container {
@@ -454,5 +495,11 @@
 
   .yt-gemini-quick-btn {
     white-space: normal;
+  }
+
+  .yt-gemini-toast {
+    bottom: 20px;
+    right: 20px;
+    left: 20px;
   }
 }

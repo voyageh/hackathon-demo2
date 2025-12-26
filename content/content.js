@@ -80,12 +80,21 @@ class YouTubeMemoriesChat {
           </svg>
           <span>Memories.ai Learning Assistant</span>
         </div>
-        <button class="yt-gemini-clear-chat" id="yt-gemini-clear-chat" title="Regenerate">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="23 4 23 10 17 10"></polyline>
-            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
-          </svg>
-        </button>
+        <div class="yt-gemini-header-buttons">
+          <button class="yt-gemini-download-btn" id="yt-gemini-download-btn" title="Download Knowledge Graph">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+          </button>
+          <button class="yt-gemini-clear-chat" id="yt-gemini-clear-chat" title="Regenerate">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="23 4 23 10 17 10"></polyline>
+              <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+            </svg>
+          </button>
+        </div>
       </div>
 
       <div class="yt-gemini-messages" id="yt-gemini-messages">
@@ -142,6 +151,10 @@ class YouTubeMemoriesChat {
 
     document.getElementById('yt-gemini-clear-chat').addEventListener('click', () => {
       this.regenerateAnalysis();
+    });
+
+    document.getElementById('yt-gemini-download-btn').addEventListener('click', () => {
+      this.downloadKnowledgeGraph();
     });
   }
 
@@ -272,6 +285,369 @@ class YouTubeMemoriesChat {
     this.conversationHistory = [];
     this.hasInitialAnalysis = false;
     await this.autoAnalyzeVideo();
+  }
+
+  async downloadKnowledgeGraph() {
+    const downloadBtn = document.getElementById('yt-gemini-download-btn');
+
+    // Save original button content
+    const originalHTML = downloadBtn.innerHTML;
+
+    // Show loading state on button
+    downloadBtn.disabled = true;
+    downloadBtn.innerHTML = `
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10" style="opacity: 0.25;"></circle>
+        <path d="M12 2 A10 10 0 0 1 22 12" style="animation: spin 1s linear infinite;"></path>
+      </svg>
+    `;
+
+    try {
+      const metadata = await this.getVideoMetadata();
+      const videoUrl = this.getCurrentVideoUrl();
+
+      console.log('[Content] Requesting knowledge graph generation...');
+
+      const response = await chrome.runtime.sendMessage({
+        action: 'generateKnowledgeGraph',
+        videoUrl: videoUrl,
+        videoId: this.getVideoId(),
+        metadata: metadata
+      });
+
+      console.log('[Content] Knowledge graph response:', response);
+
+      if (response && response.success) {
+        // Parse JSON response with better error handling
+        let knowledgeData;
+        try {
+          console.log('[Content] Raw response:', response.result.substring(0, 200));
+
+          // Try to extract JSON from response
+          let jsonStr = response.result.trim();
+
+          // Remove markdown code blocks if present
+          jsonStr = jsonStr.replace(/```json\s*/g, '').replace(/```\s*/g, '');
+
+          // Find JSON object
+          const jsonMatch = jsonStr.match(/\{[\s\S]*\}/);
+          if (!jsonMatch) {
+            throw new Error('No JSON object found in response');
+          }
+
+          jsonStr = jsonMatch[0];
+
+          // Try to fix common JSON issues
+          // Remove trailing commas before closing brackets
+          jsonStr = jsonStr.replace(/,(\s*[}\]])/g, '$1');
+
+          // Try to auto-fix truncated JSON
+          // Count opening and closing brackets
+          const openBraces = (jsonStr.match(/\{/g) || []).length;
+          const closeBraces = (jsonStr.match(/\}/g) || []).length;
+          const openBrackets = (jsonStr.match(/\[/g) || []).length;
+          const closeBrackets = (jsonStr.match(/\]/g) || []).length;
+
+          // If JSON is truncated, try to close it
+          if (openBrackets > closeBrackets || openBraces > closeBraces) {
+            console.log('[Content] JSON appears truncated, attempting to fix...');
+
+            // Close any open arrays
+            for (let i = 0; i < openBrackets - closeBrackets; i++) {
+              jsonStr += ']';
+            }
+
+            // Close any open objects
+            for (let i = 0; i < openBraces - closeBraces; i++) {
+              jsonStr += '}';
+            }
+          }
+
+          console.log('[Content] Cleaned JSON:', jsonStr.substring(0, 200));
+          console.log('[Content] JSON end:', jsonStr.substring(jsonStr.length - 100));
+
+          knowledgeData = JSON.parse(jsonStr);
+
+          // Validate required fields
+          if (!knowledgeData.mermaidCode) {
+            throw new Error('Missing mermaidCode field');
+          }
+
+        } catch (parseError) {
+          console.error('[Content] JSON parse error:', parseError);
+          console.error('[Content] Failed JSON string:', response.result);
+          this.showError('Failed to parse knowledge graph. The AI response format was invalid. Please try again.');
+          return;
+        }
+
+        // Generate HTML file
+        const htmlContent = this.generateKnowledgeGraphHTML(knowledgeData, metadata, videoUrl);
+        const filename = `${metadata.title || 'video'}_knowledge_graph.html`.replace(/[<>:"/\\|?*]/g, '_');
+        const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        // Show success message briefly
+        this.showTemporaryMessage('Knowledge graph downloaded!');
+      } else {
+        this.showError(response?.error || 'Failed to generate knowledge graph');
+      }
+    } catch (error) {
+      console.error('[Content] Download error:', error);
+      this.showError('Error generating knowledge graph: ' + error.message);
+    } finally {
+      // Restore button state
+      downloadBtn.disabled = false;
+      downloadBtn.innerHTML = originalHTML;
+    }
+  }
+
+  generateKnowledgeGraphHTML(knowledgeData, metadata, videoUrl) {
+    const { title, summary, mermaidCode, keyPoints, connections } = knowledgeData;
+
+    return `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${this.escapeHtml(title || '知识图谱')}</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+    }
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 40px;
+      color: white;
+    }
+    .header h1 {
+      font-size: 32px;
+      margin-bottom: 16px;
+      font-weight: 700;
+    }
+    .header .summary {
+      font-size: 16px;
+      line-height: 1.6;
+      opacity: 0.95;
+    }
+    .header .meta {
+      margin-top: 20px;
+      font-size: 14px;
+      opacity: 0.9;
+    }
+    .header .meta a {
+      color: white;
+      text-decoration: underline;
+    }
+    .content {
+      padding: 40px;
+    }
+    .section {
+      margin-bottom: 40px;
+    }
+    .section-title {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      color: #333;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .mermaid-container {
+      background: #f8f9fa;
+      padding: 30px;
+      border-radius: 12px;
+      margin: 20px 0;
+      overflow-x: auto;
+    }
+    .key-points {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+    .key-point {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 12px;
+      border-left: 4px solid #667eea;
+    }
+    .key-point.high {
+      border-left-color: #e74c3c;
+      background: #fff5f5;
+    }
+    .key-point.medium {
+      border-left-color: #f39c12;
+      background: #fffaf0;
+    }
+    .key-point.low {
+      border-left-color: #3498db;
+      background: #f0f8ff;
+    }
+    .key-point h3 {
+      font-size: 18px;
+      margin-bottom: 10px;
+      color: #333;
+    }
+    .key-point p {
+      font-size: 14px;
+      line-height: 1.6;
+      color: #666;
+    }
+    .connections {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 12px;
+    }
+    .connection {
+      padding: 12px;
+      margin: 8px 0;
+      background: white;
+      border-radius: 8px;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .connection .arrow {
+      color: #667eea;
+      font-weight: bold;
+    }
+    .footer {
+      background: #f8f9fa;
+      padding: 20px 40px;
+      text-align: center;
+      font-size: 14px;
+      color: #666;
+    }
+    @media print {
+      body {
+        background: white;
+        padding: 0;
+      }
+      .container {
+        box-shadow: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>${this.escapeHtml(title || '知识图谱')}</h1>
+      <div class="summary">${this.escapeHtml(summary || '')}</div>
+      <div class="meta">
+        <div><strong>视频：</strong>${this.escapeHtml(metadata.title || '')}</div>
+        <div><strong>频道：</strong>${this.escapeHtml(metadata.channel || '')}</div>
+        <div><strong>链接：</strong><a href="${videoUrl}" target="_blank">观看视频</a></div>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="section">
+        <h2 class="section-title">🗺️ 知识结构图</h2>
+        <div class="mermaid-container">
+          <div class="mermaid">
+${mermaidCode || ''}
+          </div>
+        </div>
+      </div>
+
+      ${keyPoints && keyPoints.length > 0 ? `
+      <div class="section">
+        <h2 class="section-title">💡 关键知识点</h2>
+        <div class="key-points">
+          ${keyPoints.map(point => `
+          <div class="key-point ${point.importance || 'medium'}">
+            <h3>${this.escapeHtml(point.title || '')}</h3>
+            <p>${this.escapeHtml(point.description || '')}</p>
+          </div>
+          `).join('')}
+        </div>
+      </div>
+      ` : ''}
+
+      ${connections && connections.length > 0 ? `
+      <div class="section">
+        <h2 class="section-title">🔗 知识关联</h2>
+        <div class="connections">
+          ${connections.map(conn => `
+          <div class="connection">
+            <span><strong>${this.escapeHtml(conn.from || '')}</strong></span>
+            <span class="arrow">→</span>
+            <span><em>${this.escapeHtml(conn.relationship || '')}</em></span>
+            <span class="arrow">→</span>
+            <span><strong>${this.escapeHtml(conn.to || '')}</strong></span>
+          </div>
+          `).join('')}
+        </div>
+      </div>
+      ` : ''}
+    </div>
+
+    <div class="footer">
+      <p>此知识图谱由 <strong>Memories.ai</strong> 自动生成 | 生成时间：${new Date().toLocaleString('zh-CN')}</p>
+    </div>
+  </div>
+
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'default',
+      themeVariables: {
+        primaryColor: '#667eea',
+        primaryTextColor: '#fff',
+        primaryBorderColor: '#764ba2',
+        lineColor: '#667eea',
+        secondaryColor: '#764ba2',
+        tertiaryColor: '#f8f9fa'
+      }
+    });
+  </script>
+</body>
+</html>`;
+  }
+
+  showTemporaryMessage(message) {
+    const toast = document.createElement('div');
+    toast.className = 'yt-gemini-toast';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+      toast.classList.add('show');
+    }, 10);
+
+    setTimeout(() => {
+      toast.classList.remove('show');
+      setTimeout(() => {
+        document.body.removeChild(toast);
+      }, 300);
+    }, 2000);
   }
 
   hideAnalyzing() {

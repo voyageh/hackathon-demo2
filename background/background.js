@@ -25,7 +25,107 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       });
     return true; // Keep channel open for async response
   }
+
+  if (request.action === 'generateKnowledgeGraph') {
+    handleGenerateKnowledgeGraph(request)
+      .then(result => {
+        console.log('[Background] Knowledge graph generated');
+        sendResponse({ success: true, result });
+      })
+      .catch(error => {
+        console.error('[Background] Error:', error);
+        sendResponse({ success: false, error: error.message });
+      });
+    return true;
+  }
 });
+
+// Handle knowledge graph generation
+async function handleGenerateKnowledgeGraph(request) {
+  const { videoUrl, metadata } = request;
+
+  console.log('[Background] Generating knowledge graph...');
+  console.log('[Background] Video:', metadata.title);
+
+  // Check API key
+  if (!GEMINI_API_KEY || GEMINI_API_KEY === 'YOUR_API_KEY_HERE') {
+    throw new Error('Please configure API Key in background.js');
+  }
+
+  const knowledgeGraphPrompt = `
+你是一个专业的知识图谱生成助手。请基于以下 YouTube 视频信息，生成一份可视化的知识图谱。
+
+【视频信息】
+标题：${metadata.title || '未知'}
+频道：${metadata.channel || '未知'}
+简介：${metadata.description || '无'}
+链接：${videoUrl}
+
+【任务】
+生成一个 Mermaid 格式的知识图谱，展示视频的核心知识结构和关联关系。
+
+【输出格式】（严格遵守 JSON 格式）
+
+输出一个 JSON 对象，包含以下字段：
+
+{
+  "title": "${metadata.title || '视频知识图谱'}",
+  "summary": "2-3句话的视频核心内容总结",
+  "mermaidCode": "Mermaid mindmap 代码",
+  "keyPoints": [
+    {
+      "title": "关键点标题",
+      "description": "简短描述",
+      "importance": "high/medium/low"
+    }
+  ],
+  "connections": [
+    {
+      "from": "概念A",
+      "to": "概念B",
+      "relationship": "关系类型"
+    }
+  ]
+}
+
+【Mermaid 代码要求】
+1. 使用 mindmap 类型
+2. 视频主题作为根节点
+3. 分支包含 3-5 个主要部分
+4. 每个主要部分下有 2-4 个子节点
+5. 层级不超过 3 层
+
+【Mermaid mindmap 示例】
+mindmap
+  root((视频主题))
+    第一部分
+      关键点1
+      关键点2
+    第二部分
+      关键点3
+
+【输出要求 - 极其重要】
+1. 严格输出纯 JSON，第一个字符是 {，最后一个字符是 }
+2. 不要输出任何其他文字、解释、markdown 标记
+3. mermaidCode 字段：直接写 mindmap 代码，用 \\n 表示换行
+4. keyPoints 数组：精确 4 个元素，每个包含 title、description（20字内）、importance
+5. connections 数组：精确 3 个元素，每个包含 from、to、relationship
+6. 确保数组最后一个元素后面没有逗号
+7. 确保所有括号、引号正确闭合
+8. summary 控制在 50 字以内
+9. mermaidCode 控制在 10 个节点以内
+
+【必须完整输出 JSON，包括闭合的 ] 和 }】
+
+【示例输出格式】
+{"title":"示例","summary":"简短总结","mermaidCode":"mindmap\\n  root((主题))\\n    分支1\\n      点1\\n    分支2\\n      点2","keyPoints":[{"title":"点1","description":"简短描述","importance":"high"},{"title":"点2","description":"简短描述","importance":"medium"},{"title":"点3","description":"简短描述","importance":"medium"},{"title":"点4","description":"简短描述","importance":"low"}],"connections":[{"from":"概念A","to":"概念B","relationship":"关系"},{"from":"概念B","to":"概念C","relationship":"关系"},{"from":"概念A","to":"概念C","relationship":"关系"}]}
+`;
+
+  const result = await callGeminiAPI(knowledgeGraphPrompt, null, 0.3);
+  console.log('[Background] Knowledge graph generated');
+
+  return result;
+}
 
 // Handle video analysis
 async function handleAnalyzeVideo(request) {
@@ -156,7 +256,7 @@ async function callGeminiAPI(prompt, systemPrompt = null) {
       temperature: 0.7,
       topK: 40,
       topP: 0.95,
-      maxOutputTokens: 2048,
+      maxOutputTokens: 4096,
     }
   };
 

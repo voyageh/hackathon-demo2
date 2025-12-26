@@ -3,7 +3,7 @@
 // ============================================
 // 配置区域 - 在这里填写你的 API Key
 // ============================================
-const GEMINI_API_KEY = 'AIzaSyCV_B39KAETfZuoJcaQ1x3q7rY6ypwCw4s';
+const GEMINI_API_KEY = 'AIzaSyD1TXg8nFSWW2y8rZfqJ9ykqfuz0U9451o';
 
 // Gemini API configuration
 const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta';
